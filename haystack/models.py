@@ -225,9 +225,13 @@ class SearchResult(object):
 def load_indexes(sender, *args, **kwargs):
     from haystack import connections
 
-    for conn in connections.all():
-        ui = conn.get_unified_index()
-        ui.setup_indexes()
+    try:
+        models.signals.pre_save.disconnect(load_indexes, dispatch_uid='setup_index_signals')
+        for conn in connections.all():
+            ui = conn.get_unified_index()
+            ui.setup_indexes()
+    finally:
+        models.signals.pre_save.connect(load_indexes, dispatch_uid='setup_index_signals')
 
 
 def reload_indexes(sender, *args, **kwargs):
